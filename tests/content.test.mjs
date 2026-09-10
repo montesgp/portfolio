@@ -280,14 +280,24 @@ test("education avoids unverified graduation or fluency claims", () => {
   assert.ok(engineering);
   assert.equal(engineering.period.en, "March 2008 — Present");
   assert.equal(engineering.period.es, "Marzo 2008 — Actualidad");
+  assert.equal(engineering.details.en, "");
+  assert.equal(engineering.details.es, "");
 
   const englishTraining = portfolioContent.education.filter((item) =>
     item.name.en.includes("English training")
   );
   assert.equal(englishTraining.length, 1);
   assert.equal(englishTraining[0].institution, "Education First");
-  assert.match(englishTraining[0].details.en, /Level 9\/16, basic professional competence/);
+  assert.equal(englishTraining[0].details.en, "Level 9/16, basic professional competence.");
+  assert.equal(englishTraining[0].details.es, "Nivel 9/16, competencia básica profesional.");
+  assert.doesNotMatch(JSON.stringify(portfolioContent), /Listed without adding unverified graduation or current-status claims\.|Se lista sin agregar egreso ni estado actual no verificado\./);
   assert.equal(JSON.stringify(portfolioContent).includes("Open English"), false);
+});
+
+test("education cards omit an empty details paragraph", async () => {
+  const shell = await readFile(new URL("../src/components/PortfolioShell.tsx", import.meta.url), "utf8");
+
+  assert.match(shell, /\{localize\(item\.details, language\) \? \([\s\S]*<p className="mt-4 text-sm leading-7 opacity-85">\{localize\(item\.details, language\)\}<\/p>[\s\S]*: null\}/);
 });
 
 test("added skills and verified public projects are present", () => {

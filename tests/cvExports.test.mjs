@@ -29,6 +29,47 @@ function textThrough(text, start, end) {
   return endIndex === -1 ? text.slice(startIndex) : text.slice(startIndex, endIndex + end.length);
 }
 
+function extractPdfTextBlocksWithFillColor(pdf) {
+  const rawPdf = pdf.toString("latin1");
+  const operations = /(?:\/DeviceRGB cs\s*)?([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+scn|BT([\s\S]*?)ET/g;
+  const blocks = [];
+  let fillColor = null;
+
+  for (const match of rawPdf.matchAll(operations)) {
+    if (match[4] === undefined) {
+      fillColor = match.slice(1, 4).map(Number);
+      continue;
+    }
+
+    const text = [...match[4].matchAll(/<([0-9A-Fa-f]+)>/g)]
+      .map((hex) => Buffer.from(hex[1], "hex").toString("latin1"))
+      .join("")
+      .replace(/\x97/g, "—");
+
+    if (text) {
+      blocks.push({ text, fillColor });
+    }
+  }
+
+  return blocks;
+}
+
+function findLinkRect(rawPdf, url) {
+  const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const uriObject = new RegExp(`(\\d+) 0 obj\\n<<\\n/S /URI\\n/URI \\(${escapedUrl}\\)`).exec(rawPdf);
+  assert.ok(uriObject, `missing URI object for ${url}`);
+  const annotation = new RegExp(`/A ${uriObject[1]} 0 R[\\s\\S]*?/Rect \\[([^\\]]+)\\]`).exec(rawPdf);
+  assert.ok(annotation, `missing link annotation for ${url}`);
+
+  return annotation[1].trim().split(/\s+/).map(Number);
+}
+
+function assertColor(actual, expected, message) {
+  assert.ok(actual, `${message}: missing fill color`);
+  assert.equal(actual.length, expected.length, `${message}: unexpected fill color channel count`);
+  actual.forEach((channel, index) => assert.ok(Math.abs(channel - expected[index]) < 1e-9, `${message}: channel ${index}`));
+}
+
 test("CV exports expose downloadable Modern and ATS PDF assets", async () => {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -90,6 +131,67 @@ test("generated Modern and ATS PDFs include localized Receipt Risk Detector cont
         assert.match(pdfText, /Demo: https:\/\/receipt-risk-detector-web-production\.up\.railway\.app\//);
         assert.match(pdfText, /Código fuente: https:\/\/github\.com\/montesgp\/receipt-risk-detector/);
       }
+    }
+  }
+});
+
+test("generated project links remain blue and clickable without tinting following project content", async () => {
+  const receiptRiskDetector = portfolioContent.projects.find((project) => project.name === "Receipt Risk Detector");
+  const followingProject = portfolioContent.projects.find((project) => project.name === "Gestión de circuito deportivo");
+  assert.ok(receiptRiskDetector);
+  assert.ok(followingProject);
+
+  for (const language of cvPdfExportLanguages) {
+    for (const variant of cvPdfVariants) {
+      const pdf = await readFile(new URL(`../public/downloads/${getCvPdfExports(language)[variant].fileName}`, import.meta.url));
+      const rawPdf = pdf.toString("latin1");
+      const blocks = extractPdfTextBlocksWithFillColor(pdf);
+      const linkColor = variant === "ats" ? [0, 0, 0.9333333333333333] : [0.1450980392156863, 0.3882352941176471, 0.9215686274509803];
+
+      for (const url of [receiptRiskDetector.link, receiptRiskDetector.sourceLink]) {
+        assert.ok(url);
+        const linkBlock = blocks.find((block) => block.text.includes(url));
+        assert.ok(linkBlock, `missing URL text for ${variant}/${language}: ${url}`);
+        assertColor(linkBlock.fillColor, linkColor, `${variant}/${language} URL ${url}`);
+        assert.match(rawPdf, new RegExp(`/URI \\(${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\)`));
+      }
+
+      const followingTitle = `${followingProject.name} | ${followingProject.context[language]}`;
+      const followingTitleBlock = blocks.find((block) => block.text.includes(followingTitle));
+      const followingDescriptionBlock = blocks.find((block) => block.text.includes(followingProject.description[language].slice(0, 40)));
+      assert.ok(followingTitleBlock, `missing following title for ${variant}/${language}`);
+      assert.ok(followingDescriptionBlock, `missing following description for ${variant}/${language}`);
+      assert.notDeepEqual(followingTitleBlock.fillColor, linkColor, `${variant}/${language} following title must not inherit link blue`);
+      assert.notDeepEqual(followingDescriptionBlock.fillColor, linkColor, `${variant}/${language} following description must not inherit link blue`);
+
+      const demoRect = findLinkRect(rawPdf, receiptRiskDetector.link);
+      const sourceRect = findLinkRect(rawPdf, receiptRiskDetector.sourceLink);
+      assert.ok(demoRect[1] - sourceRect[3] >= 2.5, `${variant}/${language} Demo link must leave at least 2.5pt before Source code`);
+    }
+  }
+});
+
+test("generated CV exports remove education commentary and use the exact English-training copy", async () => {
+  const removedCopy = [
+    "Se lista sin agregar egreso ni estado actual no verificado.",
+    "Listed without adding unverified graduation or current-status claims."
+  ];
+  const exactCopy = {
+    es: "Nivel 9/16, competencia básica profesional.",
+    en: "Level 9/16, basic professional competence."
+  };
+
+  for (const language of cvPdfExportLanguages) {
+    for (const variant of cvPdfVariants) {
+      const pdf = await readFile(new URL(`../public/downloads/${getCvPdfExports(language)[variant].fileName}`, import.meta.url));
+      const pdfText = extractPdfText(pdf);
+
+      for (const removedText of removedCopy) {
+        assert.doesNotMatch(pdfText, new RegExp(removedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      }
+      assert.match(pdfText, new RegExp(exactCopy[language].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.doesNotMatch(pdfText, /basic professional competence according to the CV\.|competencia profesional básica según el CV\./);
+      assert.doesNotMatch(pdfText, language === "en" ? /March 2008 — Present \|/ : /Marzo 2008 — Actualidad \|/);
     }
   }
 });

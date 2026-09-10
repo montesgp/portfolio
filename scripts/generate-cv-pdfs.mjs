@@ -146,7 +146,7 @@ function addProjectLinks(doc, project, labels, options = {}) {
     [labels.sourceCode, project.sourceLink]
   ].filter(([, link]) => link);
 
-  for (const [label, link] of links) {
+  for (const [index, [label, link]] of links.entries()) {
     doc.font("Helvetica-Bold").fontSize(options.size ?? 8).fillColor(options.labelColor ?? "#334155").text(`${label}: `, {
       continued: true
     });
@@ -155,7 +155,13 @@ function addProjectLinks(doc, project, labels, options = {}) {
       link,
       underline: true
     });
+
+    if (index < links.length - 1) {
+      doc.moveDown(options.linkGap ?? 0.15);
+    }
   }
+
+  doc.fillColor(options.restoreColor ?? options.labelColor ?? "#111827");
 }
 
 function addModernExperienceItem(doc, item, language, labels, options = {}) {
@@ -293,7 +299,7 @@ function renderModernCv(doc, language) {
 
   addSectionTitle(doc, labels.selectedProjects, "#0F172A");
   for (const project of portfolioContent.projects) {
-    ensureSpace(doc, 92);
+    ensureSpace(doc, 94);
     doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827").text(`${project.name} | ${localize(project.context, language)}`);
     doc.font("Helvetica").fontSize(8.7).fillColor("#334155").text(localize(project.description, language), { width: 500, lineGap: 1.5 });
     addProjectLinks(doc, project, labels);
@@ -302,9 +308,11 @@ function renderModernCv(doc, language) {
 
   addSectionTitle(doc, labels.educationTraining, "#0F172A");
   for (const item of portfolioContent.education.slice(0, 5)) {
-    ensureSpace(doc, 42);
+    ensureSpace(doc, 55);
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#111827").text(localize(item.name, language), { continued: true });
-    doc.font("Helvetica").fontSize(8).fillColor("#64748B").text(` · ${item.institution}`);
+    const details = localize(item.details, language);
+    const educationMeta = [item.institution, localize(item.period, language), details].filter(Boolean).join(" · ");
+    doc.font("Helvetica").fontSize(8).fillColor("#64748B").text(` · ${educationMeta}`);
   }
 }
 
@@ -353,9 +361,9 @@ function renderAtsCv(doc, language) {
 
   addSectionTitle(doc, labels.projects, "#000000");
   for (const project of portfolioContent.projects) {
-    ensureSpace(doc, 82);
-    doc.font("Helvetica-Bold").fontSize(9.5).text(`${project.name} | ${localize(project.context, language)}`);
-    doc.font("Helvetica").fontSize(8.7).text(localize(project.description, language), {
+    ensureSpace(doc, 84);
+    doc.font("Helvetica-Bold").fontSize(9.5).fillColor("#000000").text(`${project.name} | ${localize(project.context, language)}`);
+    doc.font("Helvetica").fontSize(8.7).fillColor("#000000").text(localize(project.description, language), {
       width: 500,
       lineGap: 1.5
     });
@@ -367,7 +375,8 @@ function renderAtsCv(doc, language) {
   for (const item of portfolioContent.education) {
     ensureSpace(doc, 36);
     doc.font("Helvetica-Bold").fontSize(9).text(`${localize(item.name, language)} | ${item.institution}`);
-    doc.font("Helvetica").fontSize(8.5).text(`${localize(item.period, language)} | ${localize(item.details, language)}`, { width: 500 });
+    const details = localize(item.details, language);
+    doc.font("Helvetica").fontSize(8.5).text([localize(item.period, language), details].filter(Boolean).join(" | "), { width: 500 });
   }
 }
 
