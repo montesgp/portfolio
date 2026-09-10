@@ -620,23 +620,41 @@ function Projects({
       <div className="mx-auto max-w-7xl">
         <SectionHeading id="projects" eyebrow={copy.eyebrow} title={copy.title} intro={copy.intro} theme={theme} />
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          {content.projects.map((project) => (
+          {content.projects.map((project) => {
+            const sourceLink = "sourceLink" in project && typeof project.sourceLink === "string" ? project.sourceLink : undefined;
+
+            return (
             <article key={project.name} className={cx("rounded-[1.75rem] border p-6", theme.card)}>
               <p className={cx("text-sm font-bold", theme.accent)}>{localize(project.context, language)}</p>
               <h3 className="mt-2 text-2xl font-black">{project.name}</h3>
               <p className="mt-4 text-sm leading-7 opacity-85">{localize(project.description, language)}</p>
-              {project.link ? (
-                <a
-                  href={project.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={cx("mt-5 inline-flex rounded-full text-sm font-bold underline-offset-4 outline-none hover:underline", theme.accent, theme.ring)}
-                >
-                  {copy.linkLabel}
-                </a>
+              {project.link || sourceLink ? (
+                <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+                  {project.link ? (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cx("inline-flex rounded-full text-sm font-bold underline-offset-4 outline-none hover:underline", theme.accent, theme.ring)}
+                    >
+                      {sourceLink ? copy.demoLinkLabel : copy.linkLabel}
+                    </a>
+                  ) : null}
+                  {sourceLink ? (
+                    <a
+                      href={sourceLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={cx("inline-flex rounded-full text-sm font-bold underline-offset-4 outline-none hover:underline", theme.accent, theme.ring)}
+                    >
+                      {copy.sourceLinkLabel}
+                    </a>
+                  ) : null}
+                </div>
               ) : null}
             </article>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
