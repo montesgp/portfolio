@@ -29,7 +29,9 @@ const sectionLabels = {
     projects: "Projects",
     education: "Education",
     technologies: "Technologies",
-    reference: "Reference"
+    reference: "Reference",
+    demo: "Demo",
+    sourceCode: "Source code"
   },
   es: {
     coreSkills: "Habilidades principales",
@@ -42,7 +44,9 @@ const sectionLabels = {
     projects: "Proyectos",
     education: "Educación",
     technologies: "Tecnologías",
-    reference: "Referencia"
+    reference: "Referencia",
+    demo: "Demo",
+    sourceCode: "Código fuente"
   }
 };
 
@@ -134,6 +138,24 @@ function groupExperience(items) {
 
 function formatReference(item, labels) {
   return `${labels.reference}: ${item.role} — ${item.reference.name}, ${item.reference.role}, ${item.reference.phone}`;
+}
+
+function addProjectLinks(doc, project, labels, options = {}) {
+  const links = [
+    [labels.demo, project.link],
+    [labels.sourceCode, project.sourceLink]
+  ].filter(([, link]) => link);
+
+  for (const [label, link] of links) {
+    doc.font("Helvetica-Bold").fontSize(options.size ?? 8).fillColor(options.labelColor ?? "#334155").text(`${label}: `, {
+      continued: true
+    });
+    doc.font("Helvetica").fontSize(options.size ?? 8).fillColor(options.linkColor ?? "#2563EB").text(link, {
+      width: options.width ?? 500,
+      link,
+      underline: true
+    });
+  }
 }
 
 function addModernExperienceItem(doc, item, language, labels, options = {}) {
@@ -271,12 +293,10 @@ function renderModernCv(doc, language) {
 
   addSectionTitle(doc, labels.selectedProjects, "#0F172A");
   for (const project of portfolioContent.projects) {
-    ensureSpace(doc, 62);
+    ensureSpace(doc, 92);
     doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827").text(`${project.name} | ${localize(project.context, language)}`);
     doc.font("Helvetica").fontSize(8.7).fillColor("#334155").text(localize(project.description, language), { width: 500, lineGap: 1.5 });
-    if (project.link) {
-      doc.fontSize(8).fillColor("#2563EB").text(project.link, { width: 500 });
-    }
+    addProjectLinks(doc, project, labels);
     doc.moveDown(0.45);
   }
 
@@ -333,12 +353,13 @@ function renderAtsCv(doc, language) {
 
   addSectionTitle(doc, labels.projects, "#000000");
   for (const project of portfolioContent.projects) {
-    ensureSpace(doc, 55);
+    ensureSpace(doc, 82);
     doc.font("Helvetica-Bold").fontSize(9.5).text(`${project.name} | ${localize(project.context, language)}`);
-    doc.font("Helvetica").fontSize(8.7).text([localize(project.description, language), project.link].filter(Boolean).join(" "), {
+    doc.font("Helvetica").fontSize(8.7).text(localize(project.description, language), {
       width: 500,
       lineGap: 1.5
     });
+    addProjectLinks(doc, project, labels, { labelColor: "#000000", linkColor: "#0000EE" });
     doc.moveDown(0.35);
   }
 

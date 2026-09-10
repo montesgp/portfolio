@@ -132,7 +132,9 @@ I stay continuously up to date with technology with the aim of transforming busi
           eyebrow: "Projects and impact",
           title: "Selected verified work",
           intro: "Examples below use only project facts supplied from the CV.",
-          linkLabel: "Open verified link"
+          linkLabel: "Open verified link",
+          demoLinkLabel: "Open demo",
+          sourceLinkLabel: "View source code"
         },
         education: {
           eyebrow: "Education and training",
@@ -235,7 +237,9 @@ Me mantengo en constante actualización tecnológica con objetivo en transformar
           eyebrow: "Proyectos e impacto",
           title: "Trabajo verificado seleccionado",
           intro: "Los ejemplos usan únicamente datos de proyecto provistos por el CV.",
-          linkLabel: "Abrir enlace verificado"
+          linkLabel: "Abrir enlace verificado",
+          demoLinkLabel: "Abrir demo",
+          sourceLinkLabel: "Ver código fuente"
         },
         education: {
           eyebrow: "Educación y formación",
@@ -484,6 +488,19 @@ Me mantengo en constante actualización tecnológica con objetivo en transformar
     }
   ],
   projects: [
+    {
+      name: "Receipt Risk Detector",
+      context: {
+        en: "Open-source POC — 2026",
+        es: "POC open source — 2026"
+      },
+      description: {
+        en: "Open-source POC that analyzes images of Argentine bank-transfer receipts and returns an explainable fraud-risk assessment to support manual reconciliation. It combines local OCR, metadata/C2PA inspection, deterministic financial rules, and visual analysis; it does not certify payment or authenticity.",
+        es: "POC open source que analiza imágenes de comprobantes de transferencias bancarias argentinas y devuelve una evaluación explicable del riesgo de fraude para apoyar la conciliación manual. Combina OCR local, inspección de metadatos/C2PA, reglas financieras determinísticas y análisis visual; no certifica el pago ni la autenticidad."
+      },
+      link: "https://receipt-risk-detector-web-production.up.railway.app/",
+      sourceLink: "https://github.com/montesgp/receipt-risk-detector"
+    },
     {
       name: "Gestión de circuito deportivo",
       context: {

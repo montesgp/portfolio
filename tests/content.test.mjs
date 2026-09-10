@@ -446,3 +446,25 @@ test("website contact intros invite visitors to the GitHub portfolio without ent
   const pdfGenerator = await readFile(new URL("../scripts/generate-cv-pdfs.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(pdfGenerator, /sections\.contact\.intro/);
 });
+
+test("Receipt Risk Detector is the newest shipped project with localized demo and source links", () => {
+  const receiptRiskDetector = portfolioContent.projects.find((project) => project.name === "Receipt Risk Detector");
+
+  assert.ok(receiptRiskDetector, "missing Receipt Risk Detector shipped project");
+  assert.equal(portfolioContent.projects[0], receiptRiskDetector, "newest shipped project must lead the visual project list");
+  assert.deepEqual(receiptRiskDetector.context, {
+    en: "Open-source POC — 2026",
+    es: "POC open source — 2026"
+  });
+  assert.deepEqual(receiptRiskDetector.description, {
+    en: "Open-source POC that analyzes images of Argentine bank-transfer receipts and returns an explainable fraud-risk assessment to support manual reconciliation. It combines local OCR, metadata/C2PA inspection, deterministic financial rules, and visual analysis; it does not certify payment or authenticity.",
+    es: "POC open source que analiza imágenes de comprobantes de transferencias bancarias argentinas y devuelve una evaluación explicable del riesgo de fraude para apoyar la conciliación manual. Combina OCR local, inspección de metadatos/C2PA, reglas financieras determinísticas y análisis visual; no certifica el pago ni la autenticidad."
+  });
+  assert.equal(receiptRiskDetector.link, "https://receipt-risk-detector-web-production.up.railway.app/");
+  assert.equal(receiptRiskDetector.sourceLink, "https://github.com/montesgp/receipt-risk-detector");
+
+  assert.equal(portfolioContent.locales.en.sections.projects.demoLinkLabel, "Open demo");
+  assert.equal(portfolioContent.locales.en.sections.projects.sourceLinkLabel, "View source code");
+  assert.equal(portfolioContent.locales.es.sections.projects.demoLinkLabel, "Abrir demo");
+  assert.equal(portfolioContent.locales.es.sections.projects.sourceLinkLabel, "Ver código fuente");
+});

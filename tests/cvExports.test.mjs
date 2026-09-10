@@ -65,6 +65,35 @@ test("CV exports do not use legacy unsuffixed English PDF assets", () => {
   }
 });
 
+test("generated Modern and ATS PDFs include localized Receipt Risk Detector content and clickable links", async () => {
+  const receiptRiskDetector = portfolioContent.projects.find((project) => project.name === "Receipt Risk Detector");
+  assert.ok(receiptRiskDetector, "missing Receipt Risk Detector project content");
+
+  for (const language of cvPdfExportLanguages) {
+    for (const variant of cvPdfVariants) {
+      const pdf = await readFile(new URL(`../public/downloads/${getCvPdfExports(language)[variant].fileName}`, import.meta.url));
+      const rawPdf = pdf.toString("latin1");
+      const pdfText = extractPdfText(pdf);
+
+      assert.match(pdfText, /Receipt Risk Detector/);
+      assert.match(pdfText, new RegExp(receiptRiskDetector.context[language].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.match(pdfText, new RegExp(receiptRiskDetector.description[language].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.match(pdfText, /https:\/\/receipt-risk-detector-web-production\.up\.railway\.app\//);
+      assert.match(pdfText, /https:\/\/github\.com\/montesgp\/receipt-risk-detector/);
+      assert.match(rawPdf, /\/URI \(https:\/\/receipt-risk-detector-web-production\.up\.railway\.app\//);
+      assert.match(rawPdf, /\/URI \(https:\/\/github\.com\/montesgp\/receipt-risk-detector\)/);
+
+      if (language === "en") {
+        assert.match(pdfText, /Demo: https:\/\/receipt-risk-detector-web-production\.up\.railway\.app\//);
+        assert.match(pdfText, /Source code: https:\/\/github\.com\/montesgp\/receipt-risk-detector/);
+      } else {
+        assert.match(pdfText, /Demo: https:\/\/receipt-risk-detector-web-production\.up\.railway\.app\//);
+        assert.match(pdfText, /Código fuente: https:\/\/github\.com\/montesgp\/receipt-risk-detector/);
+      }
+    }
+  }
+});
+
 test("CV exports resolve localized downloadable assets by active language", async () => {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
