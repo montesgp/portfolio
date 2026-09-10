@@ -610,8 +610,8 @@ Me mantengo en constante actualización tecnológica con objetivo en transformar
         es: "Marzo 2008 — Actualidad"
       },
       details: {
-        en: "Listed without adding unverified graduation or current-status claims.",
-        es: "Se lista sin agregar egreso ni estado actual no verificado."
+        en: "",
+        es: ""
       }
     },
     {
@@ -640,8 +640,8 @@ Me mantengo en constante actualización tecnológica con objetivo en transformar
         es: "Julio 2016 — Julio 2017"
       },
       details: {
-        en: "Level 9/16, basic professional competence according to the CV.",
-        es: "Nivel 9/16, competencia profesional básica según el CV."
+        en: "Level 9/16, basic professional competence.",
+        es: "Nivel 9/16, competencia básica profesional."
       }
     },
     {

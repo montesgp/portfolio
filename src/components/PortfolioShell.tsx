@@ -682,7 +682,9 @@ function Education({
               <p className={cx("text-sm font-bold", theme.accent)}>{localize(item.period, language)}</p>
               <h3 className="mt-2 text-xl font-black">{localize(item.name, language)}</h3>
               <p className="mt-1 font-semibold opacity-80">{item.institution}</p>
-              <p className="mt-4 text-sm leading-7 opacity-85">{localize(item.details, language)}</p>
+              {localize(item.details, language) ? (
+                <p className="mt-4 text-sm leading-7 opacity-85">{localize(item.details, language)}</p>
+              ) : null}
             </article>
           ))}
         </div>
